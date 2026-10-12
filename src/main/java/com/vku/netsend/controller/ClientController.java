@@ -1,5 +1,6 @@
 package com.vku.netsend.controller;
 
+import com.vku.netsend.network.MulticastService;
 import com.vku.netsend.network.TCPConnection;
 import com.vku.netsend.view.MainChatGUI;
 import com.vku.netsend.view.LoginGUI;
@@ -9,6 +10,7 @@ import javax.swing.SwingUtilities;
 public class ClientController {
     private MainChatGUI mainView;
     private TCPConnection connection;
+    private MulticastService multicastService = new MulticastService();
     private String currentUsername = "";
     private boolean isConnected = false;
 
@@ -28,6 +30,11 @@ public class ClientController {
                         dialog.dispose();
                         mainView = new MainChatGUI(this, username, ip);
                         mainView.setVisible(true);
+
+                        // Khởi động Multicast cho Lab 6
+                        multicastService.start(ip, username, msg -> {
+                            SwingUtilities.invokeLater(() -> mainView.appendInbox(msg));
+                        });
 
                         new Thread(this::listenIncomingMessages).start();
                     } else {
@@ -80,6 +87,9 @@ public class ClientController {
             } catch (Exception e) {
             }
         }
+        if (multicastService != null) {
+            multicastService.stop();
+        }
         isConnected = false;
         if (connection != null)
             connection.close();
@@ -91,6 +101,10 @@ public class ClientController {
     public void joinGroup(String groupName) {
         if (groupName.isEmpty())
             return;
+        // Tham gia nhóm Multicast
+        if (multicastService != null) {
+            multicastService.joinRoom(groupName);
+        }
         try {
             connection.send("JOIN_GROUP::" + currentUsername + "::" + groupName);
         } catch (Exception e) {
@@ -102,6 +116,19 @@ public class ClientController {
         String targetType = modeIndex == 0 ? "IP_NAME" : (modeIndex == 1 ? "GROUP" : "ALL");
         if (modeIndex == 2)
             targetValue = "*";
+
+        // Gửi qua Multicast (Lập trình Multicast Socket Lab 6)
+        if (multicastService != null) {
+            if (modeIndex == 2 || "*".equals(targetValue)) {
+                multicastService.sendToAll(message);
+            } else if (modeIndex == 1) {
+                multicastService.sendToGroup(targetValue, message);
+            } else if (modeIndex == 0 && targetValue.matches("\\d+\\.\\d+\\.\\d+\\.\\d+")) {
+                multicastService.sendToIP(targetValue, message);
+            }
+        }
+
+        // Đồng bộ lưu lịch sử Server và chuyển tiếp TCP dự phòng
         try {
             connection.send("NET_SEND::" + currentUsername + "::" + targetType + "::" + targetValue + "::" + message);
             mainView.clearMessageField();

@@ -139,7 +139,7 @@ public class MainChatGUI extends JFrame {
         JPanel sendPanel = new JPanel(new BorderLayout(10, 5));
         sendPanel.setBackground(Color.WHITE);
         sendPanel.setBorder(BorderFactory.createCompoundBorder(
-                new TitledBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)), " Gửi Net Send "),
+                new TitledBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)), " Gửi Net Send (Lệnh: net send {IP | group | *} message) "),
                 new EmptyBorder(10, 10, 10, 10)));
 
         JPanel targetPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -194,8 +194,30 @@ public class MainChatGUI extends JFrame {
         });
 
         btnSend.addActionListener(e -> {
+            String rawMessage = txtMessage.getText().trim();
+            if (rawMessage.isEmpty()) return;
+
+            // Hỗ trợ thực hiện lệnh theo đúng đề bài: net send {IP | group | *} message
+            if (rawMessage.toLowerCase().startsWith("net send ")) {
+                String cmdBody = rawMessage.substring(9).trim();
+                String[] parts = cmdBody.split("\\s+", 2);
+                if (parts.length >= 2) {
+                    String target = parts[0].trim();
+                    String actualMsg = parts[1].trim();
+
+                    if ("*".equals(target)) {
+                        controller.sendNetSendMessage(2, "*", actualMsg);
+                    } else if (isRoom(target)) {
+                        controller.sendNetSendMessage(1, target, actualMsg);
+                    } else {
+                        controller.sendNetSendMessage(0, target, actualMsg);
+                    }
+                    return;
+                }
+            }
+
             String target = cbTarget.getSelectedItem() != null ? cbTarget.getSelectedItem().toString().trim() : "";
-            controller.sendNetSendMessage(cbSendMode.getSelectedIndex(), target, txtMessage.getText().trim());
+            controller.sendNetSendMessage(cbSendMode.getSelectedIndex(), target, rawMessage);
         });
 
         cbSendMode.addItemListener(e -> {
@@ -240,7 +262,33 @@ public class MainChatGUI extends JFrame {
         JOptionPane.showMessageDialog(this, msg, "Lỗi", JOptionPane.ERROR_MESSAGE);
     }
 
+    private boolean isRoom(String target) {
+        for (int i = 0; i < cbRoomList.getItemCount(); i++) {
+            if (cbRoomList.getItemAt(i).equalsIgnoreCase(target)) return true;
+        }
+        return false;
+    }
+
+    private final java.util.Map<String, Boolean> recentMessages = java.util.Collections.synchronizedMap(
+            new java.util.LinkedHashMap<String, Boolean>() {
+                @Override
+                protected boolean removeEldestEntry(java.util.Map.Entry<String, Boolean> eldest) {
+                    return size() > 200;
+                }
+            });
+
     public void appendInbox(String msg) {
+        String trimmed = msg.trim();
+        if (!trimmed.isEmpty() && !trimmed.startsWith("[Hệ thống") && !trimmed.startsWith("---")) {
+            String core = trimmed;
+            if (trimmed.contains("]: ")) {
+                core = trimmed.substring(trimmed.indexOf("]: ") + 3);
+            }
+            if (recentMessages.containsKey(core)) {
+                return;
+            }
+            recentMessages.put(core, Boolean.TRUE);
+        }
         txtInbox.append(msg);
         txtInbox.setCaretPosition(txtInbox.getDocument().getLength());
     }
