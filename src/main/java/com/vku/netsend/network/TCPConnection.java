@@ -28,7 +28,7 @@ public class TCPConnection {
     }
 
     /**
-     * Hàm gửi tin nhắn qua ống TCP
+     * Hàm gửi tin nhắn qua kết nối TCP
      * Gửi độ dài chuỗi trước, sau đó mới gửi nội dung để chống dính gói tin (TCP
      * Sticky)
      */
@@ -40,8 +40,8 @@ public class TCPConnection {
     }
 
     /**
-     * Hàm nhận tin nhắn từ ống TCP (Hàm này sẽ đứng chờ/block cho đến khi có tin
-     * đến)
+     * Hàm nhận tin nhắn từ kết nối TCP (Hàm này sẽ đứng chờ/block cho đến khi có
+     * tin đến)
      */
     public String receive() throws IOException {
         // Đọc 4 byte đầu tiên để biết tin nhắn sắp tới dài bao nhiêu
@@ -75,7 +75,7 @@ public class TCPConnection {
     }
 
     /**
-     * Kiểm tra xem đường ống đã bị đóng chưa
+     * Kiểm tra xem đường kết nối đã bị đóng chưa
      */
     public boolean isClosed() {
         return socket == null || socket.isClosed();

@@ -96,6 +96,12 @@ public class ServerController {
 
                     if (allAccounts.containsKey(username)) {
                         conn.send("SYS::Tên đăng nhập này đã tồn tại!");
+                    } else if (pass.length() <= 8) {
+                        conn.send("SYS::Mật khẩu phải trên 8 ký tự!");
+                    } else if (!pass.matches(".*[A-Z].*")) {
+                        conn.send("SYS::Mật khẩu phải chứa ít nhất 1 ký tự viết hoa!");
+                    } else if (!pass.matches(".*[0-9].*")) {
+                        conn.send("SYS::Mật khẩu phải chứa ít nhất 1 ký tự số!");
                     } else {
                         // Bỏ DisplayName, Username dùng cho cả hai
                         ClientInfo newUser = new ClientInfo(username, email, pass, clientIP, null);
@@ -135,7 +141,7 @@ public class ServerController {
 
                         java.util.List<String> allHist = loadHistory("global_all");
                         if (!allHist.isEmpty()) {
-                            StringBuilder hist = new StringBuilder("HISTORY::\n--- Lịch sử Tất cả ---\n");
+                            StringBuilder hist = new StringBuilder("HISTORY::\n--- Lịch sử tất cả ---\n");
                             for (String m : allHist)
                                 hist.append(m).append("\n");
                             conn.send(hist.toString());

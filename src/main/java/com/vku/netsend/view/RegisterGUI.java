@@ -115,14 +115,18 @@ public class RegisterGUI extends JDialog {
 
             if (ipServer.isEmpty() || user.isEmpty() || email.isEmpty() || pass.isEmpty()) {
                 showErrorMessage("Vui lòng nhập đầy đủ thông tin!");
-                return;
+            } else {
+                // Kiểm tra điều kiện mật khẩu bằng cấu trúc if () else if () lồng bên trong
+                if (pass.length() <= 8) {
+                    showErrorMessage("Mật khẩu phải trên 8 ký tự!");
+                } else if (!pass.matches(".*[A-Z].*")) {
+                    showErrorMessage("Mật khẩu phải chứa ít nhất 1 ký tự viết hoa!");
+                } else if (!pass.matches(".*[0-9].*")) {
+                    showErrorMessage("Mật khẩu phải chứa ít nhất 1 ký tự số!");
+                } else {
+                    controller.attemptRegister(ipServer, user, email, pass, this);
+                }
             }
-            if (pass.length() < 8 || !pass.matches(".*[A-Z].*") || !pass.matches(".*\\d.*")
-                    || !pass.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*")) {
-                showErrorMessage("Mật khẩu yếu!\nYêu cầu: Trên 8 ký tự, 1 in hoa, 1 số, 1 ký đặc biệt.");
-                return;
-            }
-            controller.attemptRegister(ipServer, user, email, pass, this);
         });
 
         lblCancel.addMouseListener(new MouseAdapter() {

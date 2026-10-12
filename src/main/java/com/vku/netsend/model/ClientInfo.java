@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ClientInfo {
-    private String username; // Vừa là Tên đăng nhập, vừa là Tên hiển thị
-    private String email; // Dùng để tạo tên File lưu trữ
+    private String username;
+    private String email;
     private String password;
     private String ipClient;
     private String group;
