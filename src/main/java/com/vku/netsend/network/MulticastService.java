@@ -9,11 +9,12 @@ import java.util.function.Consumer;
 
 /**
  * Lớp xử lý truyền thông mạng Multicast (Lab 6: Lập trình Multicast)
- * Sử dụng MulticastSocket và DatagramPacket trên dải IP Class D (224.0.0.0 - 239.255.255.255).
+ * Sử dụng MulticastSocket và DatagramPacket trên dải IP Class D (224.0.0.0 -
+ * 239.255.255.255).
  */
 public class MulticastService {
     public static final int MULTICAST_PORT = 9877;
-    public static final String GLOBAL_MULTICAST_IP = "230.0.0.1";
+    public static final String GLOBAL_MULTICAST_IP = "230.0.0.1"; // Đây là địa chỉ
 
     private MulticastSocket multicastSocket;
     private InetAddress globalGroup;
@@ -53,13 +54,14 @@ public class MulticastService {
             listenThread.start();
 
             if (messageConsumer != null) {
-                messageConsumer.accept("[Hệ thống Multicast]: Đã khởi động Multicast tại cổng " + MULTICAST_PORT 
+                messageConsumer.accept("[Hệ thống Multicast]: Đã khởi động Multicast tại cổng " + MULTICAST_PORT
                         + ", tham gia nhóm Tất cả (*) tại IP: " + GLOBAL_MULTICAST_IP + "\n");
             }
         } catch (Exception e) {
             System.err.println("Lỗi khởi tạo MulticastSocket: " + e.getMessage());
             if (messageConsumer != null) {
-                messageConsumer.accept("[Hệ thống Multicast]: Không thể mở cổng Multicast " + MULTICAST_PORT + ": " + e.getMessage() + "\n");
+                messageConsumer.accept("[Hệ thống Multicast]: Không thể mở cổng Multicast " + MULTICAST_PORT + ": "
+                        + e.getMessage() + "\n");
             }
         }
     }
@@ -100,7 +102,7 @@ public class MulticastService {
             multicastSocket.joinGroup(currentRoomGroup);
 
             if (messageConsumer != null) {
-                messageConsumer.accept("[Hệ thống Multicast]: Đã tham gia Multicast phòng [" + roomName 
+                messageConsumer.accept("[Hệ thống Multicast]: Đã tham gia Multicast phòng [" + roomName
                         + "] tại địa chỉ IP: " + groupIP + "\n");
             }
         } catch (Exception e) {
@@ -139,9 +141,10 @@ public class MulticastService {
         }
         new Thread(() -> {
             try {
-                // Định dạng gói tin: MULTICAST::<TYPE>::<TARGET>::<SENDER_NAME>::<SENDER_IP>::<TIME>::<MESSAGE>
+                // Định dạng gói tin:
+                // MULTICAST::<TYPE>::<TARGET>::<SENDER_NAME>::<SENDER_IP>::<TIME>::<MESSAGE>
                 String timeStr = dateFormat.format(new Date());
-                String payload = String.format("MC_PKT::%s::%s::%s::%s::%s::%s", 
+                String payload = String.format("MC_PKT::%s::%s::%s::%s::%s::%s",
                         type, target, localUsername, localIP, timeStr, message);
 
                 byte[] data = payload.getBytes(StandardCharsets.UTF_8);
@@ -166,7 +169,8 @@ public class MulticastService {
                 multicastSocket.receive(packet);
 
                 String senderPhysicalIP = packet.getAddress().getHostAddress();
-                String rawData = new String(packet.getData(), packet.getOffset(), packet.getLength(), StandardCharsets.UTF_8);
+                String rawData = new String(packet.getData(), packet.getOffset(), packet.getLength(),
+                        StandardCharsets.UTF_8);
 
                 if (rawData.startsWith("MC_PKT::")) {
                     String[] parts = rawData.split("::", 7);
@@ -179,23 +183,24 @@ public class MulticastService {
                         String message = parts[6];
 
                         // Dùng IP nhận được từ gói tin nếu có
-                        String displayIP = (senderPhysicalIP != null && !senderPhysicalIP.equals("127.0.0.1")) 
-                                ? senderPhysicalIP : senderVirtualIP;
+                        String displayIP = (senderPhysicalIP != null && !senderPhysicalIP.equals("127.0.0.1"))
+                                ? senderPhysicalIP
+                                : senderVirtualIP;
 
                         String formattedMsg;
                         if ("ALL".equals(type)) {
-                            formattedMsg = String.format("[Tất cả] [%s] [Từ IP: %s - Tên: %s]: %s", 
+                            formattedMsg = String.format("[Tất cả] [%s] [Từ IP: %s - Tên: %s]: %s",
                                     timeStr, displayIP, senderName, message);
                         } else if ("GROUP".equals(type)) {
                             // Chỉ hiển thị nếu máy mình đang ở trong nhóm đó
                             if (currentRoomName != null && currentRoomName.equalsIgnoreCase(target)) {
-                                formattedMsg = String.format("[Nhóm %s] [%s] [Từ IP: %s - Tên: %s]: %s", 
+                                formattedMsg = String.format("[Nhóm %s] [%s] [Từ IP: %s - Tên: %s]: %s",
                                         target, timeStr, displayIP, senderName, message);
                             } else {
                                 continue;
                             }
                         } else {
-                            formattedMsg = String.format("[Cá nhân] [%s] [Từ IP: %s - Tên: %s]: %s", 
+                            formattedMsg = String.format("[Cá nhân] [%s] [Từ IP: %s - Tên: %s]: %s",
                                     timeStr, displayIP, senderName, message);
                         }
 

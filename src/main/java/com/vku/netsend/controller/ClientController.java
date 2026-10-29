@@ -139,7 +139,8 @@ public class ClientController {
     }
 
     public void createRoom(String roomName) {
-        if (roomName == null || roomName.trim().isEmpty()) return;
+        if (roomName == null || roomName.trim().isEmpty())
+            return;
         try {
             connection.send("CREATE_ROOM::" + roomName.trim());
         } catch (Exception e) {
@@ -147,6 +148,7 @@ public class ClientController {
         }
     }
 
+    // Hàm lắng nghe tin nhắn từ client khác gửi tới server
     private void listenIncomingMessages() {
         while (isConnected) {
             try {
